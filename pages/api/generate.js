@@ -6,7 +6,6 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-
 const generateAction = async (req, res) => {
   const PromptPrefix = 
   `
@@ -27,7 +26,7 @@ const generateAction = async (req, res) => {
     model: 'text-davinci-003',
     prompt: `${PromptPrefix}`,
     temperature: 0.7,
-    max_tokens: 250,
+    max_tokens: 300,
   });
   
   const basePromptOutput = baseCompletion.data.choices.pop();
@@ -36,62 +35,3 @@ const generateAction = async (req, res) => {
 };
 
 export default generateAction;
-
-// prompt chaining
-// const generateAction = async (req, res) => {
-
-// const basePromptPrefix =
-// `
-// make a reminder in google tasks for:
-// ${req.body.userInput}
-
-// if it applies, also give some tips on the description on how to make this task the best way possible. make a three bullet ideas
-// the format should be:
-// Task: 
-// Time:(if its not specified should return "N/A")
-// Date:(if its not specified should return "N/A")
-// Location:(if its not specified should return "N/A")
-// Description: 
-// `
-//   console.log(`API: ${basePromptPrefix}`)
-
-//   const baseCompletion = await openai.createCompletion({
-//     model: 'text-davinci-003',
-//     prompt: `${basePromptPrefix}`,
-//     temperature: 0.8,
-//     max_tokens: 250,
-//   });
-  
-//   const basePromptOutput = baseCompletion.data.choices.pop();
-
-//   // I build Prompt #2.
-
-//   const secondPrompt =
-//   `
-//   make a reminder in google tasks for:
-//   ${req.body.userInput}
-
-//   calendar event example: ${basePromptOutput.text}
-
-//   calendar event:
-// `
-
-  
-//   // I call the OpenAI API a second time with Prompt #2
-//   const secondPromptCompletion = await openai.createCompletion({
-//     model: 'text-davinci-003',
-//     prompt: `${secondPrompt}`,
-//     // I set a higher temperature for this one. Up to you!
-//     temperature: 0.85,
-// 		// I also increase max_tokens.
-//     max_tokens: 1250,
-//   });
-  
-//   // Get the output
-//   const secondPromptOutput = secondPromptCompletion.data.choices.pop();
-
-//   // Send over the Prompt #2's output to our UI instead of Prompt #1's.
-//   res.status(200).json({ output: secondPromptOutput });
-// };
-
-// export default generateAction;
