@@ -7,18 +7,18 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const generateAction = async (req, res) => {
+  console.log(new Date().toDateString())
   const PromptPrefix = 
   `
   make a reminder in google tasks for:
   ${req.body.userInput}, today is: ${new Date().toDateString()}
 
-  if it applies, also give some tips on the description on how to make this task the best way possible. make a three bullet ideas
-  the format should be:
+  the format output should be:
   Task: 
   Time:(if its not specified should return "N/A")
   Date:(if its not specified should return "N/A")
   Location:(if its not specified should return "N/A")
-  Description: 
+  Description: (give some tips on how to make this task the best way possible. make a three bullet ideas)
 `
   console.log(`API: ${PromptPrefix}`)
 
@@ -31,23 +31,70 @@ const generateAction = async (req, res) => {
   
   const basePromptOutput = baseCompletion.data.choices.pop();
 
+  function dateToFormat(date){
+    //convert date to day-month-year format
+    var dateArray = date.split(" ");
+    var day = dateArray[2];
+    var month = dateArray[1];
+    var year = dateArray[3];
+    var monthNumber;
+    switch(month){
+      case "Jan":
+        monthNumber="01";
+        break;
+      case "Feb":
+        monthNumber="02";
+        break;
+      case "Mar":
+        monthNumber="03";
+        break;
+      case "Apr":
+        monthNumber="04";
+        break;
+      case "May":
+        monthNumber="05";
+        break;
+      case "Jun":
+        monthNumber="06";
+        break;
+      case "Jul":
+        monthNumber="07";
+        break;
+      case "Aug":
+        monthNumber="08";
+        break;
+      case "Sep":
+        monthNumber="09";
+        break;
+      case "Oct":
+        monthNumber="10";
+        break;
+      case "Nov":
+        monthNumber="11";
+        break;
+      case "Dec":
+        monthNumber="12";
+        break;
+    }
+    return day+"-"+monthNumber+"-"+year;
+  }
+
   function dateIsValid(date) {
-    date=new Date(date)
-    return date instanceof Date && !isNaN(date);
+    //check if date is valid, the format of date is day-month-year
+    var dateArray = date.split("-");
+    var day = dateArray[0];
+    var month = dateArray[1];
+    var year = dateArray[2];
+    var date = new Date(year, month, day);
+    if (date.getFullYear() == year && date.getMonth() == month && date.getDate() == day) {
+      return true;
+    }
+    return false;
   }
 
-  let date=basePromptOutput.text.split("Date:")[1].split("Location:")[0].trim()
-  if(date=="Tomorrow"){
-    date=new Date()
-    date.setDate(date.getDate()+1)
-    date=date.toDateString()
-    basePromptOutput.text=basePromptOutput.text.split("Date:")[0]+"Date: "+date+basePromptOutput.text.split("Tomorrow")[1]
-
-  }
-  else{
     const dateCompletion = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `transform ${date} to this type: month-date-year. 29 and 30th of february are not possible dates, in that case return N/A`,
+      prompt: `${req.body.userInput}, today is: ${dateToFormat(new Date().toDateString())} \nget the date future date like if it was a calendar out of this input in (day-month-year) format:`,
       temperature: 0.1,
       max_tokens: 100,
     });
@@ -61,7 +108,6 @@ const generateAction = async (req, res) => {
     else{
       basePromptOutput.text=basePromptOutput.text.split("Date:")[0]+"Date: N/A\n"+"Location:"+basePromptOutput.text.split("Location:")[1]
     }
-  }
   res.status(200).json({ output: basePromptOutput });
 };
 
