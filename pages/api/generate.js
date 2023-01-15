@@ -10,7 +10,7 @@ const generateAction = async (req, res) => {
   const PromptPrefix = 
   `
   make a reminder in google tasks for:
-  ${req.body.userInput}
+  ${req.body.userInput}, today is: ${new Date().toDateString()}
 
   if it applies, also give some tips on the description on how to make this task the best way possible. make a three bullet ideas
   the format should be:
@@ -32,6 +32,7 @@ const generateAction = async (req, res) => {
   const basePromptOutput = baseCompletion.data.choices.pop();
 
   function dateIsValid(date) {
+    date=new Date(date)
     return date instanceof Date && !isNaN(date);
   }
 
@@ -46,15 +47,15 @@ const generateAction = async (req, res) => {
   else{
     const dateCompletion = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `transform ${date} to this type: month-date-2023`,
-      temperature: 0.7,
-      max_tokens: 300,
+      prompt: `transform ${date} to this type: month-date-year. 29 and 30th of february are not possible dates, in that case return N/A`,
+      temperature: 0.1,
+      max_tokens: 100,
     });
     
     const dataPromptOutput = dateCompletion.data.choices.pop();
     //remove \n from the string
     dataPromptOutput.text=dataPromptOutput.text.replace(/(\r\n|\n|\r)/gm, "")
-    if (dateIsValid(new Date(dataPromptOutput.text))){
+    if (dateIsValid(dataPromptOutput.text)){
       basePromptOutput.text=basePromptOutput.text.split("Date:")[0]+"Date: "+dataPromptOutput.text+"\n"+"Location:"+basePromptOutput.text.split("Location:")[1]
     }
     else{
