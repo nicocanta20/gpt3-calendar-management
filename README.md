@@ -4,7 +4,7 @@ Type a future event in plain language, like "Go to the gym at 6pm on Monday",
 and GPT-3 turns it into a structured calendar entry: task, time, date, location,
 and three tips for getting it done.
 
-Built in December 2022, one week after ChatGPT launched.
+Built in December 2022.
 
 ## How it works
 - A Next.js API route makes two GPT-3 calls:
